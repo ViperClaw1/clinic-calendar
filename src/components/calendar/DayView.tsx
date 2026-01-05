@@ -9,14 +9,16 @@ const DayView: React.FC = () => {
   const dayAppointments = getAppointmentsForDate(appointments, selectedDate, selectedPhysicianId);
 
   return (
-    <div className="flex h-full bg-card rounded-xl border border-border overflow-hidden shadow-sm">
-      <TimeColumn />
-      <div className="flex flex-1">
-        <DayColumn
-          date={selectedDate}
-          appointments={dayAppointments}
-          showHeader={true}
-        />
+    <div className="h-full bg-card rounded-xl border border-border overflow-auto shadow-sm scrollbar-thin">
+      <div className="flex min-w-fit">
+        <TimeColumn />
+        <div className="flex flex-1">
+          <DayColumn
+            date={selectedDate}
+            appointments={dayAppointments}
+            showHeader={true}
+          />
+        </div>
       </div>
     </div>
   );
