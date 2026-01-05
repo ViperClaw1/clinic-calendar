@@ -9,7 +9,7 @@ interface SidebarNavProps {
 
 const navItems = [
   { id: 'calendar', icon: CalendarDays, label: 'Calendar' },
-  { id: 'patients', icon: Users, label: 'Patients' },
+  { id: 'physicians', icon: Users, label: 'Physicians' },
   { id: 'locations', icon: MapPin, label: 'Locations' },
   { id: 'reports', icon: BarChart3, label: 'Reports' },
   { id: 'settings', icon: Settings, label: 'Settings' },
