@@ -32,7 +32,7 @@ const TimeColumn: React.FC<TimeColumnProps> = ({
             >
               {/* Show time label at the start of each hour */}
               {isHourStart && (
-                <span className="absolute -top-2.5 right-2 text-xs text-muted-foreground font-medium whitespace-nowrap bg-muted/30 px-0.5">
+                <span className="absolute -top-2.5 right-2 text-xs text-muted-foreground font-medium whitespace-nowrap bg-background px-1">
                   {formatTime(time)}
                 </span>
               )}
