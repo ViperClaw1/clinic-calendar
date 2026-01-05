@@ -12,16 +12,18 @@ const WeekView: React.FC = () => {
   const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
 
   return (
-    <div className="flex h-full bg-card rounded-xl border border-border overflow-hidden shadow-sm">
-      <TimeColumn />
-      <div className="flex flex-1 overflow-x-auto scrollbar-thin">
-        {weekDays.map((day) => (
-          <DayColumn
-            key={day.toISOString()}
-            date={day}
-            appointments={getAppointmentsForDate(appointments, day, selectedPhysicianId)}
-          />
-        ))}
+    <div className="h-full bg-card rounded-xl border border-border overflow-auto shadow-sm scrollbar-thin">
+      <div className="flex min-w-fit">
+        <TimeColumn />
+        <div className="flex flex-1">
+          {weekDays.map((day) => (
+            <DayColumn
+              key={day.toISOString()}
+              date={day}
+              appointments={getAppointmentsForDate(appointments, day, selectedPhysicianId)}
+            />
+          ))}
+        </div>
       </div>
     </div>
   );
