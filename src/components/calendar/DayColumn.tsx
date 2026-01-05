@@ -77,16 +77,17 @@ const DayColumn: React.FC<DayColumnProps> = ({ date, appointments, showHeader = 
         {/* Time slots background */}
         {timeSlots.map((time, index) => {
           const isUnavailable = selectedPhysician && !isPhysicianAvailableAtSlot(selectedPhysician, date, time);
+          const isHourStart = index % 4 === 0;
           
           return (
             <div
               key={time}
               className={cn(
-                "h-12 border-b border-border/50 transition-colors duration-150",
+                "h-12 transition-colors duration-150",
+                isHourStart ? "border-t border-border" : "border-t border-border/30",
                 isUnavailable 
                   ? "bg-calendar-unavailable cursor-not-allowed" 
-                  : "calendar-slot hover:bg-calendar-slot-hover",
-                index % 4 === 0 && "border-b-border"
+                  : "calendar-slot hover:bg-calendar-slot-hover"
               )}
               onClick={() => handleSlotClick(time)}
               onDragOver={(e) => handleDragOver(e, time)}
