@@ -13,6 +13,9 @@ export default {
       },
     },
     extend: {
+      fontFamily: {
+        sans: ['Inter', 'system-ui', 'sans-serif'],
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
@@ -57,6 +60,24 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        status: {
+          confirmed: "hsl(var(--status-confirmed))",
+          "confirmed-bg": "hsl(var(--status-confirmed-bg))",
+          pending: "hsl(var(--status-pending))",
+          "pending-bg": "hsl(var(--status-pending-bg))",
+          cancelled: "hsl(var(--status-cancelled))",
+          "cancelled-bg": "hsl(var(--status-cancelled-bg))",
+          completed: "hsl(var(--status-completed))",
+          "completed-bg": "hsl(var(--status-completed-bg))",
+          "no-show": "hsl(var(--status-no-show))",
+          "no-show-bg": "hsl(var(--status-no-show-bg))",
+        },
+        calendar: {
+          unavailable: "hsl(var(--calendar-unavailable))",
+          available: "hsl(var(--calendar-available))",
+          today: "hsl(var(--calendar-today))",
+          "slot-hover": "hsl(var(--calendar-slot-hover))",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -65,25 +86,37 @@ export default {
       },
       keyframes: {
         "accordion-down": {
-          from: {
-            height: "0",
-          },
-          to: {
-            height: "var(--radix-accordion-content-height)",
-          },
+          from: { height: "0" },
+          to: { height: "var(--radix-accordion-content-height)" },
         },
         "accordion-up": {
-          from: {
-            height: "var(--radix-accordion-content-height)",
-          },
-          to: {
-            height: "0",
-          },
+          from: { height: "var(--radix-accordion-content-height)" },
+          to: { height: "0" },
+        },
+        "slide-in-right": {
+          from: { transform: "translateX(100%)", opacity: "0" },
+          to: { transform: "translateX(0)", opacity: "1" },
+        },
+        "slide-out-right": {
+          from: { transform: "translateX(0)", opacity: "1" },
+          to: { transform: "translateX(100%)", opacity: "0" },
+        },
+        "fade-in": {
+          from: { opacity: "0" },
+          to: { opacity: "1" },
+        },
+        "scale-in": {
+          from: { transform: "scale(0.95)", opacity: "0" },
+          to: { transform: "scale(1)", opacity: "1" },
         },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        "slide-in-right": "slide-in-right 0.3s ease-out",
+        "slide-out-right": "slide-out-right 0.3s ease-out",
+        "fade-in": "fade-in 0.2s ease-out",
+        "scale-in": "scale-in 0.2s ease-out",
       },
     },
   },
