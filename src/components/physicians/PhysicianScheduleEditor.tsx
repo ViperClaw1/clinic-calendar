@@ -185,17 +185,56 @@ const PhysicianScheduleEditor: React.FC<PhysicianScheduleEditorProps> = ({
 
   const currentDayIntervals = schedule[selectedDay] || [];
 
-  // Generate time options for select
-  const getTimeOptions = (isEnd: boolean = false) => {
+  // Check if a time point falls within any existing interval (excluding the current one)
+  const isTimeOccupied = useCallback((time: string, excludeIntervalId: string): boolean => {
+    const timeMin = timeToMinutes(time);
+    return currentDayIntervals.some(interval => {
+      if (interval.id === excludeIntervalId) return false;
+      const startMin = timeToMinutes(interval.start);
+      const endMin = timeToMinutes(interval.end);
+      return timeMin >= startMin && timeMin < endMin;
+    });
+  }, [currentDayIntervals]);
+
+  // Get available start times for an interval (times that don't fall within other intervals)
+  const getAvailableStartTimes = useCallback((intervalId: string): string[] => {
     const options: string[] = [];
-    for (let hour = 8; hour <= 21; hour++) {
+    for (let hour = 8; hour < 21; hour++) {
       for (let minute = 0; minute < 60; minute += 15) {
-        if (hour === 21 && minute > 0) continue;
-        options.push(`${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`);
+        const time = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+        if (!isTimeOccupied(time, intervalId)) {
+          options.push(time);
+        }
       }
     }
     return options;
-  };
+  }, [isTimeOccupied]);
+
+  // Get available end times for an interval given its start time
+  const getAvailableEndTimes = useCallback((intervalId: string, startTime: string): string[] => {
+    const options: string[] = [];
+    const startMin = timeToMinutes(startTime);
+    
+    // Find the next occupied time slot after the start time
+    let maxEndMin = timeToMinutes('21:00');
+    for (const interval of currentDayIntervals) {
+      if (interval.id === intervalId) continue;
+      const intervalStartMin = timeToMinutes(interval.start);
+      if (intervalStartMin > startMin && intervalStartMin < maxEndMin) {
+        maxEndMin = intervalStartMin;
+      }
+    }
+    
+    // Generate end times from start+15min up to the max end
+    for (let mins = startMin + 15; mins <= maxEndMin; mins += 15) {
+      const hours = Math.floor(mins / 60);
+      const minutes = mins % 60;
+      if (hours > 21) break;
+      options.push(`${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`);
+    }
+    
+    return options;
+  }, [currentDayIntervals]);
 
   const getDaySlotCount = (day: number): number => {
     const intervals = schedule[day] || [];
@@ -273,7 +312,7 @@ const PhysicianScheduleEditor: React.FC<PhysicianScheduleEditorProps> = ({
                         onChange={(e) => handleUpdateInterval(interval.id, 'start', e.target.value)}
                         className="px-3 py-1.5 text-sm border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-primary/20"
                       >
-                        {getTimeOptions().map(time => (
+                        {getAvailableStartTimes(interval.id).map(time => (
                           <option key={time} value={time}>
                             {formatTime(time)}
                           </option>
@@ -290,8 +329,8 @@ const PhysicianScheduleEditor: React.FC<PhysicianScheduleEditorProps> = ({
                         onChange={(e) => handleUpdateInterval(interval.id, 'end', e.target.value)}
                         className="px-3 py-1.5 text-sm border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-primary/20"
                       >
-                        {getTimeOptions(true).map(time => (
-                          <option key={time} value={time} disabled={timeToMinutes(time) <= timeToMinutes(interval.start)}>
+                        {getAvailableEndTimes(interval.id, interval.start).map(time => (
+                          <option key={time} value={time}>
                             {formatTime(time)}
                           </option>
                         ))}
