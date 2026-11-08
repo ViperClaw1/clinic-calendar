@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Clock, User, MapPin, Calendar, FileText, Ban } from 'lucide-react';
 import { useAppointmentStore } from '@/store/appointmentStore';
-import { useAppointments, useAppointmentTypes, useCreateAppointment, useLocations, usePatients, usePhysicians, useUpdateAppointment } from '@/api/hooks';
+import { useAppointments, useAppointmentTypes, useCreateAppointment, useLocations, useMembership, usePatients, usePhysicians, useSession, useUpdateAppointment } from '@/api/hooks';
 import { isSlotAvailable, formatTime, generateTimeSlots } from '@/utils/calendarUtils';
 import { Appointment, AppointmentDuration, AppointmentStatus } from '@/types';
 import NewPatientDialog from '@/components/NewPatientDialog';
@@ -20,6 +20,10 @@ const AppointmentSidebar: React.FC = () => {
     editingAppointmentId,
     closeSidebar
   } = useAppointmentStore();
+  const session = useSession();
+  const { data: membership } = useMembership(session?.user.id);
+  // A physician books only for themselves; RLS enforces this, the form just does not offer others.
+  const ownPhysicianId = membership?.physician_id ?? null;
   const { data: physicians = [] } = usePhysicians();
   const { data: patients = [] } = usePatients();
   const { data: locations = [] } = useLocations();
@@ -47,7 +51,7 @@ const AppointmentSidebar: React.FC = () => {
     if (sidebarAppointment) {
       setFormData({
         patientId: sidebarAppointment.patientId || '',
-        physicianId: sidebarAppointment.physicianId || '',
+        physicianId: ownPhysicianId || sidebarAppointment.physicianId || '',
         locationId: sidebarAppointment.locationId || '',
         date: sidebarAppointment.date || format(new Date(), 'yyyy-MM-dd'),
         startTime: sidebarAppointment.startTime || '09:00',
@@ -59,7 +63,7 @@ const AppointmentSidebar: React.FC = () => {
     } else {
       setFormData({
         patientId: '',
-        physicianId: '',
+        physicianId: ownPhysicianId || '',
         locationId: '',
         date: format(new Date(), 'yyyy-MM-dd'),
         startTime: '09:00',
@@ -69,7 +73,7 @@ const AppointmentSidebar: React.FC = () => {
         notes: '',
       });
     }
-  }, [sidebarAppointment, sidebarOpen]);
+  }, [sidebarAppointment, sidebarOpen, ownPhysicianId]);
 
   // new Date('yyyy-MM-dd') is UTC midnight, the previous day west of UTC; parseISO is local.
   const parsedDate = parseISO(formData.date);
@@ -178,6 +182,7 @@ const AppointmentSidebar: React.FC = () => {
                 physicianId: value,
                 locationId: '' // Reset location when physician changes
               })}
+              disabled={!!ownPhysicianId}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Select physician" />

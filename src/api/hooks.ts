@@ -138,6 +138,20 @@ export const useCreatePatient = () => {
   });
 };
 
+export const useSetPhysicianLocation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ physicianId, locationId, enabled }: { physicianId: string; locationId: string; enabled: boolean }) => {
+      const { error } = enabled
+        ? await supabase.from('physician_locations').insert({ physician_id: physicianId, location_id: locationId })
+        : await supabase.from('physician_locations').delete().eq('physician_id', physicianId).eq('location_id', locationId);
+      if (error) throw error;
+    },
+    onError: toastSaveError,
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ['physicians'] }),
+  });
+};
+
 export const useSaveSchedule = () => {
   const queryClient = useQueryClient();
   return useMutation({

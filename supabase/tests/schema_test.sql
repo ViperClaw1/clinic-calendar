@@ -1,7 +1,7 @@
 -- Invariants and RLS from ADR-0001. Run: supabase test db
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(49);
+select plan(53);
 
 -- Fixtures: America/New_York; 2030-03-10 is the DST start. Dates avoid clashing with seed.sql.
 insert into auth.users (id, email) values
@@ -151,6 +151,15 @@ select throws_ok($$ insert into public.physician_availability (physician_id, loc
   '42501', null, 'physician cannot edit a foreign schedule');
 select lives_ok($$ select pg_temp.book(gen_random_uuid(), 'b', '2030-02-04 15:00Z', 30) $$,
   'physician can book for themselves');
+select lives_ok($$ insert into public.physician_locations values ('33333333-0000-0000-0000-00000000000b', '22222222-0000-0000-0000-000000000002') $$, 'physician can add their own location');
+delete from public.physician_locations where physician_id = '33333333-0000-0000-0000-00000000000b' and location_id = '22222222-0000-0000-0000-000000000002';
+select is((select count(*) from public.physician_locations where physician_id = '33333333-0000-0000-0000-00000000000b' and location_id = '22222222-0000-0000-0000-000000000002'), 0::bigint,
+  'physician can remove their own location');
+select throws_ok($$ insert into public.physician_locations values ('33333333-0000-0000-0000-00000000000a', '22222222-0000-0000-0000-000000000001') $$, '42501', null,
+  'physician cannot add a location for someone else');
+delete from public.physician_locations where physician_id = '33333333-0000-0000-0000-00000000000a';
+select is((select count(*) from public.physician_locations where physician_id = '33333333-0000-0000-0000-00000000000a'), 2::bigint,
+  'physician cannot remove a location of someone else');
 select lives_ok($$ insert into public.patients (name, email, phone) values ('New', 'n@x', '3') $$, 'physician can add a patient');
 update public.clinic_members set role = 'admin' where user_id = '11111111-0000-0000-0000-000000000004';
 select is(private.member_role(), 'physician'::public.member_role, 'physician cannot promote themselves');
