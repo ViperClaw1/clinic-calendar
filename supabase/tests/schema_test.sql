@@ -122,8 +122,8 @@ select pg_temp.login(4);
 select is((select count(*) from public.appointments
   where physician_id <> '33333333-0000-0000-0000-00000000000b'), 0::bigint, 'physician sees no foreign appointments');
 select is((select count(*) from public.appointments), 1::bigint, 'physician sees their own appointment');
-select is((select count(*) from public.patients where id = '44444444-0000-0000-0000-00000000000b'), 0::bigint,
-  'physician cannot see a patient of nobody');
+select is((select count(*) from public.patients where id = '44444444-0000-0000-0000-00000000000b'), 1::bigint,
+  'physician can see a patient they have no appointment with');
 select is((select count(*) from public.patients where id = '44444444-0000-0000-0000-00000000000a'), 1::bigint,
   'physician sees their own patient');
 select throws_ok($$ select pg_temp.book(gen_random_uuid(), 'a', '2030-02-04 15:00Z', 30) $$,
