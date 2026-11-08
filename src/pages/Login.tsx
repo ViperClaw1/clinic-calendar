@@ -82,11 +82,11 @@ const Login: React.FC = () => {
           <>
             <div className="space-y-2">
               <Label htmlFor="name">Full name</Label>
-              <Input id="name" autoComplete="name" required value={name} onChange={(e) => setName(e.target.value)} />
+              <Input id="name" autoComplete="name" placeholder="Dr. Jane Smith" required value={name} onChange={(e) => setName(e.target.value)} />
             </div>
             <div className="space-y-2">
               <Label htmlFor="specialty">Specialty</Label>
-              <Input id="specialty" required value={specialty} onChange={(e) => setSpecialty(e.target.value)} />
+              <Input id="specialty" placeholder="Family Medicine" required value={specialty} onChange={(e) => setSpecialty(e.target.value)} />
             </div>
           </>
         )}
