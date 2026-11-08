@@ -52,10 +52,6 @@ insert into public.patients (id, name, email, phone, date_of_birth) values
   ('00000000-0000-0000-0000-00000000c007', 'Michael Taylor', 'm.taylor@email.com', '(555) 789-0123', '1972-12-03'),
   ('00000000-0000-0000-0000-00000000c008', 'Amanda Martinez', 'a.martinez@email.com', '(555) 890-1234', '1993-06-18');
 
-insert into public.appointment_types (name) values
-  ('Annual Checkup'), ('Follow-up'), ('Consultation'), ('Wellness Visit'), ('Lab Results Review'),
-  ('Vaccination'), ('Comprehensive Exam'), ('Cardiac Evaluation'), ('Physical Therapy'), ('Mental Health');
-
 -- Appointments in the current week (day_offset 0 = Monday), so the calendar is never empty.
 with week as (select date_trunc('week', now() at time zone 'America/New_York')::date as monday)
 insert into public.appointments (patient_id, physician_id, location_id, type, starts_at, ends_at, status)

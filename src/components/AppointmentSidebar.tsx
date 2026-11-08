@@ -285,6 +285,12 @@ const AppointmentSidebar: React.FC = () => {
             </div>
           </div>
 
+          {selectedPhysician && selectedPhysician.availability.length === 0 && (
+            <p role="status" className="text-sm text-muted-foreground">
+              {selectedPhysician.name} has no schedule yet. Add working hours in the Physicians section to book appointments.
+            </p>
+          )}
+
           {/* Appointment Type */}
           <div className="space-y-2">
             <Label className="flex items-center gap-2">
