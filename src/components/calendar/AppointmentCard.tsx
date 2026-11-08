@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Appointment } from '@/types';
 import { useAppointmentStore } from '@/store/appointmentStore';
-import { patients, physicians } from '@/data/mockData';
+import { usePatients, usePhysicians } from '@/api/hooks';
 import { formatTime, getEndTime, getAppointmentColor, STATUS_META } from '@/utils/calendarUtils';
 import { cn } from '@/lib/utils';
 
@@ -13,6 +13,8 @@ interface AppointmentCardProps {
 const AppointmentCard: React.FC<AppointmentCardProps> = ({ appointment, compact = false }) => {
   const { openSidebar } = useAppointmentStore();
   const [isDragging, setIsDragging] = useState(false);
+  const { data: patients = [] } = usePatients();
+  const { data: physicians = [] } = usePhysicians();
   const patient = patients.find((p) => p.id === appointment.patientId);
   const physician = physicians.find((p) => p.id === appointment.physicianId);
   const { label: statusLabel, icon: StatusIcon } = STATUS_META[appointment.status];
@@ -67,7 +69,7 @@ const AppointmentCard: React.FC<AppointmentCardProps> = ({ appointment, compact 
       {...interactionProps}
       draggable
       onDragStart={(e) => {
-        e.dataTransfer.setData('appointmentId', appointment.id);
+        e.dataTransfer.setData('application/json', JSON.stringify(appointment));
         e.dataTransfer.effectAllowed = 'move';
         setIsDragging(true);
       }}

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Users, MapPin } from 'lucide-react';
 import { useAppointmentStore } from '@/store/appointmentStore';
-import { physicians, locations } from '@/data/mockData';
+import { useLocations, usePhysicians } from '@/api/hooks';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { getAppointmentColor, STATUS_META } from '@/utils/calendarUtils';
@@ -17,6 +17,8 @@ const CalendarFilters: React.FC = () => {
     setSelectedPhysicianId,
     setSelectedLocationId
   } = useAppointmentStore();
+  const { data: physicians = [] } = usePhysicians();
+  const { data: locations = [] } = useLocations();
 
   return (
     <div className="flex flex-wrap items-center gap-x-4 gap-y-3 pb-4">

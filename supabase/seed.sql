@@ -78,3 +78,27 @@ from week, (values
   ('c001', 'b004', 'a003', 'Follow-up', 3, time '16:00', 45, 'no-show'),
   ('c002', 'b001', 'a002', 'Consultation', 4, time '09:00', 30, 'cancelled')
 ) as v (patient, physician, location, type, day_offset, start_time, minutes, status);
+
+-- Local dev logins, password "password123". Never seed this file into a real project.
+insert into auth.users (
+  instance_id, id, aud, role, email, encrypted_password, email_confirmed_at,
+  raw_app_meta_data, raw_user_meta_data, created_at, updated_at,
+  confirmation_token, recovery_token, email_change, email_change_token_new
+)
+select '00000000-0000-0000-0000-000000000000', u.id::uuid, 'authenticated', 'authenticated', u.email,
+       extensions.crypt('password123', extensions.gen_salt('bf')), now(),
+       '{"provider":"email","providers":["email"]}', '{}', now(), now(), '', '', '', ''
+from (values
+  ('00000000-0000-0000-0000-00000000d001', 'admin@clinic.test'),
+  ('00000000-0000-0000-0000-00000000d002', 'reception@clinic.test'),
+  ('00000000-0000-0000-0000-00000000d003', 'chen@clinic.test')
+) as u (id, email);
+
+insert into auth.identities (provider_id, user_id, identity_data, provider, created_at, updated_at)
+select id::text, id, json_build_object('sub', id::text, 'email', email)::jsonb, 'email', now(), now()
+from auth.users where email like '%@clinic.test';
+
+insert into public.clinic_members (user_id, role, physician_id) values
+  ('00000000-0000-0000-0000-00000000d001', 'admin', null),
+  ('00000000-0000-0000-0000-00000000d002', 'receptionist', null),
+  ('00000000-0000-0000-0000-00000000d003', 'physician', '00000000-0000-0000-0000-00000000b001');

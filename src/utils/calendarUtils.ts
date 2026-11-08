@@ -55,59 +55,68 @@ export const isSlotAvailable = (
   startTime: string,
   duration: AppointmentDuration,
   existingAppointments: Appointment[],
-  excludeAppointmentId?: string
+  excludeAppointmentId?: string,
+  locationId?: string | null
 ): boolean => {
-  const dayOfWeek = date.getDay();
-  const availability = physician.availability[dayOfWeek] || [];
-  
+  const availability = getPhysicianAvailability(physician, date, locationId);
+
   // Check if physician is available for all required slots
   const startMinutes = timeToMinutes(startTime);
   const endMinutes = startMinutes + duration;
-  
+
   for (let time = startMinutes; time < endMinutes; time += 15) {
     const slotTime = minutesToTime(time);
     if (!availability.includes(slotTime)) {
       return false;
     }
   }
-  
+
   // Check for conflicts with existing appointments
   const dateString = format(date, 'yyyy-MM-dd');
   const physicianAppointments = existingAppointments.filter(
-    (apt) => 
-      apt.physicianId === physician.id && 
+    (apt) =>
+      apt.physicianId === physician.id &&
       apt.date === dateString &&
       apt.status !== 'cancelled' &&
+      apt.status !== 'no-show' &&
       apt.id !== excludeAppointmentId
   );
-  
+
   for (const apt of physicianAppointments) {
     const aptStart = timeToMinutes(apt.startTime);
     const aptEnd = aptStart + apt.duration;
-    
+
     // Check for overlap
     if (startMinutes < aptEnd && endMinutes > aptStart) {
       return false;
     }
   }
-  
+
   return true;
 };
 
 export const getPhysicianAvailability = (
   physician: Physician,
-  date: Date
+  date: Date,
+  locationId?: string | null
 ): string[] => {
-  const dayOfWeek = date.getDay();
-  return physician.availability[dayOfWeek] || [];
+  const slots: string[] = [];
+  for (const range of physician.availability) {
+    if (range.weekday !== date.getDay() || (locationId && range.locationId !== locationId)) continue;
+    for (let time = timeToMinutes(range.start); time < timeToMinutes(range.end); time += 15) {
+      slots.push(minutesToTime(time));
+    }
+  }
+  return slots;
 };
 
 export const isPhysicianAvailableAtSlot = (
   physician: Physician,
   date: Date,
-  time: string
+  time: string,
+  locationId?: string | null
 ): boolean => {
-  const availability = getPhysicianAvailability(physician, date);
+  const availability = getPhysicianAvailability(physician, date, locationId);
   return availability.includes(time);
 };
 

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { X, Clock, User, MapPin, Calendar, FileText, Trash2 } from 'lucide-react';
+import { X, Clock, User, MapPin, Calendar, FileText, Ban } from 'lucide-react';
 import { useAppointmentStore } from '@/store/appointmentStore';
-import { physicians, patients, locations, appointmentTypes } from '@/data/mockData';
+import { useAppointments, useAppointmentTypes, useCreateAppointment, useLocations, usePatients, usePhysicians, useUpdateAppointment } from '@/api/hooks';
 import { isSlotAvailable, formatTime, generateTimeSlots } from '@/utils/calendarUtils';
 import { Appointment, AppointmentDuration, AppointmentStatus } from '@/types';
 import { Button } from '@/components/ui/button';
@@ -10,22 +10,24 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
-import { format } from 'date-fns';
+import { format, isValid, parseISO } from 'date-fns';
 
 const AppointmentSidebar: React.FC = () => {
-  const { 
-    sidebarOpen, 
-    sidebarAppointment, 
+  const {
+    sidebarOpen,
+    sidebarAppointment,
     editingAppointmentId,
-    appointments,
-    closeSidebar, 
-    addAppointment,
-    updateAppointment,
-    deleteAppointment
+    closeSidebar
   } = useAppointmentStore();
+  const { data: physicians = [] } = usePhysicians();
+  const { data: patients = [] } = usePatients();
+  const { data: locations = [] } = useLocations();
+  const { data: appointmentTypes = [] } = useAppointmentTypes();
+  const createAppointment = useCreateAppointment();
+  const updateAppointment = useUpdateAppointment();
+  const saving = createAppointment.isPending || updateAppointment.isPending;
 
   const isEditing = !!editingAppointmentId;
-  const existingAppointment = appointments.find(a => a.id === editingAppointmentId);
 
   const [formData, setFormData] = useState({
     patientId: '',
@@ -67,6 +69,11 @@ const AppointmentSidebar: React.FC = () => {
     }
   }, [sidebarAppointment, sidebarOpen]);
 
+  // new Date('yyyy-MM-dd') is UTC midnight, the previous day west of UTC; parseISO is local.
+  const parsedDate = parseISO(formData.date);
+  const formDate = isValid(parsedDate) ? parsedDate : new Date();
+  const { data: appointments = [] } = useAppointments(formDate, formDate);
+
   const selectedPhysician = physicians.find((p) => p.id === formData.physicianId);
   const filteredLocations = selectedPhysician
     ? locations.filter((l) => selectedPhysician.locationIds.includes(l.id))
@@ -75,36 +82,36 @@ const AppointmentSidebar: React.FC = () => {
   const timeSlots = generateTimeSlots();
   const availableTimeSlots = selectedPhysician
     ? timeSlots.filter((time) => {
-        const date = new Date(formData.date);
         return isSlotAvailable(
           selectedPhysician,
-          date,
+          formDate,
           time,
           formData.duration,
           appointments,
-          editingAppointmentId || undefined
+          editingAppointmentId || undefined,
+          formData.locationId
         );
       })
     : timeSlots;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!formData.patientId || !formData.physicianId || !formData.locationId || !formData.type) {
       return;
     }
 
     if (isEditing && editingAppointmentId) {
-      updateAppointment(editingAppointmentId, formData);
-      closeSidebar();
+      updateAppointment.mutate({ ...formData, id: editingAppointmentId }, { onSuccess: closeSidebar });
     } else {
-      addAppointment(formData);
+      createAppointment.mutate(formData, { onSuccess: closeSidebar });
     }
   };
 
-  const handleDelete = () => {
+  // Appointments are never deleted (ADR-0001): cancelling keeps the record.
+  const handleCancelAppointment = () => {
     if (editingAppointmentId) {
-      deleteAppointment(editingAppointmentId);
+      updateAppointment.mutate({ ...formData, id: editingAppointmentId, status: 'cancelled' }, { onSuccess: closeSidebar });
     }
   };
 
@@ -113,11 +120,11 @@ const AppointmentSidebar: React.FC = () => {
   return (
     <>
       {/* Backdrop */}
-      <div 
+      <div
         className="fixed inset-0 bg-foreground/20 backdrop-blur-sm z-40 animate-fade-in"
         onClick={closeSidebar}
       />
-      
+
       {/* Sidebar */}
       <div className="fixed right-0 top-0 h-full w-full max-w-md bg-card border-l border-border shadow-2xl z-50 animate-slide-in-right overflow-auto">
         <div className="sticky top-0 bg-card border-b border-border p-4 flex items-center justify-between z-10">
@@ -161,8 +168,8 @@ const AppointmentSidebar: React.FC = () => {
             </Label>
             <Select
               value={formData.physicianId}
-              onValueChange={(value) => setFormData({ 
-                ...formData, 
+              onValueChange={(value) => setFormData({
+                ...formData,
                 physicianId: value,
                 locationId: '' // Reset location when physician changes
               })}
@@ -331,24 +338,25 @@ const AppointmentSidebar: React.FC = () => {
 
           {/* Actions */}
           <div className="flex gap-3 pt-4">
-            {isEditing && (
+            {isEditing && formData.status !== 'cancelled' && (
               <Button
                 type="button"
                 variant="destructive"
-                onClick={handleDelete}
+                onClick={handleCancelAppointment}
+                disabled={saving}
                 className="gap-2"
               >
-                <Trash2 className="h-4 w-4" />
-                Delete
+                <Ban className="h-4 w-4" />
+                Cancel appointment
               </Button>
             )}
             <Button type="button" variant="outline" onClick={closeSidebar} className="flex-1">
-              Cancel
+              Close
             </Button>
-            <Button 
-              type="submit" 
+            <Button
+              type="submit"
               className="flex-1"
-              disabled={!formData.patientId || !formData.physicianId || !formData.locationId || !formData.type}
+              disabled={saving || !formData.patientId || !formData.physicianId || !formData.locationId || !formData.type}
             >
               {isEditing ? 'Update' : 'Schedule'}
             </Button>

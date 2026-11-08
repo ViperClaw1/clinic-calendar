@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { format, isToday } from 'date-fns';
 import { useAppointmentStore } from '@/store/appointmentStore';
-import { physicians } from '@/data/mockData';
+import { usePhysicians, useUpdateAppointment } from '@/api/hooks';
 import { generateTimeSlots, isPhysicianAvailableAtSlot, getSlotTop, getSlotHeight, layoutAppointments, SLOT_HEIGHT } from '@/utils/calendarUtils';
 import { Appointment } from '@/types';
 import { cn } from '@/lib/utils';
@@ -45,14 +45,16 @@ const NowIndicator: React.FC = () => {
 };
 
 const DayColumn: React.FC<DayColumnProps> = ({ date, appointments, showHeader = true }) => {
-  const { selectedPhysicianId, calendarView, openSidebar, setSelectedDate, setCalendarView } = useAppointmentStore();
+  const { selectedPhysicianId, selectedLocationId, calendarView, openSidebar, setSelectedDate, setCalendarView } = useAppointmentStore();
   const [dropTime, setDropTime] = useState<string | null>(null);
   const timeSlots = generateTimeSlots();
+  const { data: physicians = [] } = usePhysicians();
+  const updateAppointment = useUpdateAppointment();
   const selectedPhysician = physicians.find((p) => p.id === selectedPhysicianId);
   const isCurrentDay = isToday(date);
 
   const isUnavailable = (time: string) =>
-    !!selectedPhysician && !isPhysicianAvailableAtSlot(selectedPhysician, date, time);
+    !!selectedPhysician && !isPhysicianAvailableAtSlot(selectedPhysician, date, time, selectedLocationId);
 
   const handleSlotClick = (time: string) => {
     if (isUnavailable(time)) return;
@@ -61,6 +63,7 @@ const DayColumn: React.FC<DayColumnProps> = ({ date, appointments, showHeader = 
       date: format(date, 'yyyy-MM-dd'),
       startTime: time,
       physicianId: selectedPhysicianId || undefined,
+      locationId: selectedLocationId || undefined,
     });
   };
 
@@ -78,10 +81,9 @@ const DayColumn: React.FC<DayColumnProps> = ({ date, appointments, showHeader = 
   const handleDrop = (e: React.DragEvent, time: string) => {
     e.preventDefault();
     setDropTime(null);
-    const appointmentId = e.dataTransfer.getData('appointmentId');
-    if (appointmentId) {
-      const { rescheduleAppointment } = useAppointmentStore.getState();
-      rescheduleAppointment(appointmentId, format(date, 'yyyy-MM-dd'), time);
+    const dragged = e.dataTransfer.getData('application/json');
+    if (dragged) {
+      updateAppointment.mutate({ ...(JSON.parse(dragged) as Appointment), date: format(date, 'yyyy-MM-dd'), startTime: time });
     }
   };
 

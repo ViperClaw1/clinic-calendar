@@ -1,5 +1,6 @@
 import React from 'react';
 import { CalendarDays, Users, MapPin, BarChart3, Settings, LogOut } from 'lucide-react';
+import { signOut, useMembership, useSession } from '@/api/hooks';
 import { cn } from '@/lib/utils';
 
 interface SidebarNavProps {
@@ -16,6 +17,10 @@ const navItems = [
 ];
 
 const SidebarNav: React.FC<SidebarNavProps> = ({ activeItem = 'calendar', onItemClick }) => {
+  const session = useSession();
+  const { data: membership } = useMembership(session?.user.id);
+  const email = session?.user.email ?? '';
+
   return (
     <aside className="sticky top-0 flex h-screen w-16 flex-shrink-0 flex-col border-r border-border bg-card lg:w-64">
       {/* Logo */}
@@ -60,15 +65,16 @@ const SidebarNav: React.FC<SidebarNavProps> = ({ activeItem = 'calendar', onItem
       <div className="border-t border-border p-2 lg:p-4">
         <div className="flex items-center justify-center gap-3 lg:px-2">
           <div className="hidden h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-muted lg:flex">
-            <span className="text-sm font-medium text-muted-foreground">AC</span>
+            <span className="text-sm font-medium text-muted-foreground">{email.slice(0, 2).toUpperCase()}</span>
           </div>
           <div className="hidden min-w-0 flex-1 lg:block">
-            <p className="truncate text-sm font-medium text-foreground">Admin Clinic</p>
-            <p className="truncate text-xs text-muted-foreground">admin@clinic.com</p>
+            <p className="truncate text-sm font-medium text-foreground">{email}</p>
+            <p className="truncate text-xs capitalize text-muted-foreground">{membership?.role}</p>
           </div>
           <button
             type="button"
             aria-label="Log out"
+            onClick={() => signOut()}
             className="rounded-md p-2 text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             <LogOut className="h-4 w-4" aria-hidden="true" />

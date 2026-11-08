@@ -6,6 +6,14 @@ export interface Location {
   id: string;
   name: string;
   address: string;
+  timezone: string; // IANA
+}
+
+export interface AvailabilityRange {
+  locationId: string;
+  weekday: number; // 0 = Sunday
+  start: string; // "HH:MM"
+  end: string; // "HH:MM"
 }
 
 export interface Physician {
@@ -14,9 +22,7 @@ export interface Physician {
   specialty: string;
   avatar?: string;
   locationIds: string[];
-  // Availability is a map of day of week (0-6) to array of available time slots
-  // Each slot is in format "HH:MM" representing 15-minute slots
-  availability: Record<number, string[]>;
+  availability: AvailabilityRange[];
 }
 
 export interface Patient {
@@ -32,8 +38,8 @@ export interface Appointment {
   patientId: string;
   physicianId: string;
   locationId: string;
-  date: string; // ISO date string
-  startTime: string; // "HH:MM" format
+  date: string; // "yyyy-MM-dd" in the time of the location
+  startTime: string; // "HH:MM" in the time of the location
   duration: AppointmentDuration;
   status: AppointmentStatus;
   notes?: string;

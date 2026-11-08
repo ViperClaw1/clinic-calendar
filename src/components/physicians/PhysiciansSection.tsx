@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
 import { Physician, Location } from '@/types';
-import { physicians as mockPhysicians, locations } from '@/data/mockData';
+import { useLocations, usePhysicians, useSaveSchedule } from '@/api/hooks';
 import PhysicianCard from './PhysicianCard';
 import PhysicianScheduleEditor from './PhysicianScheduleEditor';
 import { Input } from '@/components/ui/input';
 import { Search, Users } from 'lucide-react';
-import { toast } from 'sonner';
 
 const PhysiciansSection: React.FC = () => {
-  const [physicians, setPhysicians] = useState<Physician[]>(mockPhysicians);
+  const { data: physicians = [], isPending } = usePhysicians();
+  const { data: locations = [] } = useLocations();
+  const saveSchedule = useSaveSchedule();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedPhysician, setSelectedPhysician] = useState<Physician | null>(null);
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
@@ -20,15 +21,8 @@ const PhysiciansSection: React.FC = () => {
     setScheduleEditorOpen(true);
   };
 
-  const handleSaveSchedule = (physicianId: string, locationId: string, availability: Record<number, string[]>) => {
-    setPhysicians(prev =>
-      prev.map(p =>
-        p.id === physicianId
-          ? { ...p, availability }
-          : p
-      )
-    );
-    toast.success('Schedule updated successfully');
+  const handleSaveSchedule = (physicianId: string, locationId: string, ranges: { weekday: number; start: string; end: string }[]) => {
+    saveSchedule.mutate({ physicianId, locationId, ranges });
   };
 
   const filteredPhysicians = physicians.filter(p =>
@@ -72,7 +66,7 @@ const PhysiciansSection: React.FC = () => {
         ))}
       </div>
 
-      {filteredPhysicians.length === 0 && (
+      {!isPending && filteredPhysicians.length === 0 && (
         <div className="text-center py-12 text-muted-foreground">
           <Users className="w-12 h-12 mx-auto mb-3 opacity-50" />
           <p>No physicians found matching your search</p>

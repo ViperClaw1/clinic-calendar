@@ -5,14 +5,16 @@ import CalendarFilters from '@/components/calendar/CalendarFilters';
 import CalendarGrid from '@/components/calendar/CalendarGrid';
 import AppointmentSidebar from '@/components/AppointmentSidebar';
 import PhysiciansSection from '@/components/physicians/PhysiciansSection';
+import { useAppointmentsRealtime } from '@/api/hooks';
 
 const Dashboard: React.FC = () => {
   const [activeNav, setActiveNav] = useState('calendar');
+  useAppointmentsRealtime();
 
   return (
     <div className="flex h-screen w-full bg-background overflow-hidden">
       <SidebarNav activeItem={activeNav} onItemClick={setActiveNav} />
-      
+
       {activeNav === 'calendar' && (
         <>
           <main className="flex min-w-0 flex-1 flex-col overflow-hidden">

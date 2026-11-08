@@ -1,14 +1,16 @@
 import React from 'react';
 import { startOfWeek, addDays } from 'date-fns';
 import { useAppointmentStore } from '@/store/appointmentStore';
+import { useVisibleAppointments } from '@/api/hooks';
 import { getAppointmentsForDate } from '@/utils/calendarUtils';
 import TimeColumn from './TimeColumn';
 import DayColumn from './DayColumn';
 
 const WeekView: React.FC = () => {
-  const { selectedDate, appointments, selectedPhysicianId, selectedLocationId } = useAppointmentStore();
+  const { selectedDate, selectedPhysicianId, selectedLocationId } = useAppointmentStore();
+  const appointments = useVisibleAppointments();
   const weekStart = startOfWeek(selectedDate, { weekStartsOn: 0 });
-  
+
   const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
 
   return (

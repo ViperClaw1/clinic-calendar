@@ -1,6 +1,7 @@
 import React from 'react';
 import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, isSameMonth, isToday, isSameDay } from 'date-fns';
 import { useAppointmentStore } from '@/store/appointmentStore';
+import { useVisibleAppointments } from '@/api/hooks';
 import { getAppointmentsForDate } from '@/utils/calendarUtils';
 import AppointmentCard from './AppointmentCard';
 import { cn } from '@/lib/utils';
@@ -9,7 +10,8 @@ const MAX_VISIBLE = 3;
 const focusClass = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring';
 
 const MonthView: React.FC = () => {
-  const { selectedDate, appointments, selectedPhysicianId, selectedLocationId, setSelectedDate, setCalendarView } = useAppointmentStore();
+  const { selectedDate, selectedPhysicianId, selectedLocationId, setSelectedDate, setCalendarView } = useAppointmentStore();
+  const appointments = useVisibleAppointments();
 
   const monthStart = startOfMonth(selectedDate);
   const monthEnd = endOfMonth(selectedDate);

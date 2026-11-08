@@ -1,11 +1,13 @@
 import React from 'react';
 import { useAppointmentStore } from '@/store/appointmentStore';
+import { useVisibleAppointments } from '@/api/hooks';
 import { getAppointmentsForDate } from '@/utils/calendarUtils';
 import TimeColumn from './TimeColumn';
 import DayColumn from './DayColumn';
 
 const DayView: React.FC = () => {
-  const { selectedDate, appointments, selectedPhysicianId, selectedLocationId } = useAppointmentStore();
+  const { selectedDate, selectedPhysicianId, selectedLocationId } = useAppointmentStore();
+  const appointments = useVisibleAppointments();
   const dayAppointments = getAppointmentsForDate(appointments, selectedDate, selectedPhysicianId, selectedLocationId);
 
   return (

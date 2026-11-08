@@ -13,7 +13,7 @@ interface PhysicianScheduleEditorProps {
   location: Location | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSave: (physicianId: string, locationId: string, availability: Record<number, string[]>) => void;
+  onSave: (physicianId: string, locationId: string, ranges: { weekday: number; start: string; end: string }[]) => void;
 }
 
 const DAYS_OF_WEEK = [
@@ -44,41 +44,6 @@ interface TimeInterval {
   start: string;
   end: string;
 }
-
-const parseIntervalsFromSlots = (slots: string[]): TimeInterval[] => {
-  if (!slots || slots.length === 0) return [];
-  
-  const sortedSlots = [...slots].sort();
-  const intervals: TimeInterval[] = [];
-  let intervalStart = sortedSlots[0];
-  let prevSlot = sortedSlots[0];
-  
-  for (let i = 1; i < sortedSlots.length; i++) {
-    const currentSlot = sortedSlots[i];
-    const prevMinutes = timeToMinutes(prevSlot);
-    const currentMinutes = timeToMinutes(currentSlot);
-    
-    // If there's a gap, close the previous interval and start a new one
-    if (currentMinutes - prevMinutes > 15) {
-      intervals.push({
-        id: `${intervalStart}-${addMinutes(prevSlot, 15)}`,
-        start: intervalStart,
-        end: addMinutes(prevSlot, 15),
-      });
-      intervalStart = currentSlot;
-    }
-    prevSlot = currentSlot;
-  }
-  
-  // Close the last interval
-  intervals.push({
-    id: `${intervalStart}-${addMinutes(prevSlot, 15)}`,
-    start: intervalStart,
-    end: addMinutes(prevSlot, 15),
-  });
-  
-  return intervals;
-};
 
 const timeToMinutes = (time: string): number => {
   const [hours, minutes] = time.split(':').map(Number);
@@ -120,15 +85,17 @@ const PhysicianScheduleEditor: React.FC<PhysicianScheduleEditorProps> = ({
     if (open && physician && !isInitialized) {
       const initialSchedule: Record<number, TimeInterval[]> = {};
       for (let day = 0; day <= 6; day++) {
-        const slots = physician.availability[day] || [];
-        initialSchedule[day] = parseIntervalsFromSlots(slots);
+        initialSchedule[day] = physician.availability
+          .filter((r) => r.weekday === day && r.locationId === location?.id)
+          .sort((a, b) => a.start.localeCompare(b.start))
+          .map((r) => ({ id: `${r.start}-${r.end}`, start: r.start, end: r.end }));
       }
       setSchedule(initialSchedule);
       setIsInitialized(true);
     } else if (!open) {
       setIsInitialized(false);
     }
-  }, [open, physician, isInitialized]);
+  }, [open, physician, location, isInitialized]);
 
   const handleAddInterval = useCallback(() => {
     setSchedule(prev => {
@@ -143,7 +110,7 @@ const PhysicianScheduleEditor: React.FC<PhysicianScheduleEditorProps> = ({
         }
       }
       const endTime = addMinutes(startTime, 60); // Default 1 hour interval
-      
+
       return {
         ...prev,
         [selectedDay]: [
@@ -172,14 +139,12 @@ const PhysicianScheduleEditor: React.FC<PhysicianScheduleEditorProps> = ({
 
   const handleSave = () => {
     if (!physician || !location) return;
-    
-    // Convert intervals back to slots
-    const availability: Record<number, string[]> = {};
-    for (let day = 0; day <= 6; day++) {
-      availability[day] = intervalsToSlots(schedule[day] || []);
-    }
-    
-    onSave(physician.id, location.id, availability);
+
+    const ranges = Object.entries(schedule).flatMap(([day, intervals]) =>
+      intervals.map(({ start, end }) => ({ weekday: Number(day), start, end }))
+    );
+
+    onSave(physician.id, location.id, ranges);
     onOpenChange(false);
   };
 
@@ -214,7 +179,7 @@ const PhysicianScheduleEditor: React.FC<PhysicianScheduleEditorProps> = ({
   const getAvailableEndTimes = useCallback((intervalId: string, startTime: string): string[] => {
     const options: string[] = [];
     const startMin = timeToMinutes(startTime);
-    
+
     // Find the next occupied time slot after the start time
     let maxEndMin = timeToMinutes('21:00');
     for (const interval of currentDayIntervals) {
@@ -224,7 +189,7 @@ const PhysicianScheduleEditor: React.FC<PhysicianScheduleEditorProps> = ({
         maxEndMin = intervalStartMin;
       }
     }
-    
+
     // Generate end times from start+15min up to the max end
     for (let mins = startMin + 15; mins <= maxEndMin; mins += 15) {
       const hours = Math.floor(mins / 60);
@@ -232,7 +197,7 @@ const PhysicianScheduleEditor: React.FC<PhysicianScheduleEditorProps> = ({
       if (hours > 21) break;
       options.push(`${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`);
     }
-    
+
     return options;
   }, [currentDayIntervals]);
 
@@ -304,7 +269,7 @@ const PhysicianScheduleEditor: React.FC<PhysicianScheduleEditorProps> = ({
                     <span className="text-sm text-muted-foreground font-medium w-6">
                       {index + 1}.
                     </span>
-                    
+
                     {/* Start time */}
                     <div className="flex items-center gap-2">
                       <select
