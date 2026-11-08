@@ -15,11 +15,11 @@ const Dashboard: React.FC = () => {
       
       {activeNav === 'calendar' && (
         <>
-          <main className="flex-1 flex flex-col overflow-hidden">
-            <div className="flex-1 p-6 overflow-hidden flex flex-col">
+          <main className="flex min-w-0 flex-1 flex-col overflow-hidden">
+            <div className="flex flex-1 flex-col overflow-auto p-3 md:p-6">
               <CalendarHeader />
               <CalendarFilters />
-              <div className="flex-1 min-h-0">
+              <div className="min-h-[24rem] flex-1">
                 <CalendarGrid />
               </div>
             </div>

@@ -8,7 +8,7 @@ const CalendarGrid: React.FC = () => {
   const { calendarView } = useAppointmentStore();
 
   return (
-    <div className="h-full overflow-auto scrollbar-thin">
+    <div className="h-full">
       {calendarView === 'day' && <DayView />}
       {calendarView === 'week' && <WeekView />}
       {calendarView === 'month' && <MonthView />}

@@ -1,8 +1,8 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
 @layer base {
   :root {
@@ -47,6 +47,13 @@
     --status-completed-bg: 215 16% 95%;
     --status-no-show: 262 83% 58%;
     --status-no-show-bg: 262 83% 95%;
+
+    /* Status text: darker than the accent so it stays AA-legible on the tinted bg */
+    --status-confirmed-fg: 142 72% 20%;
+    --status-pending-fg: 30 80% 24%;
+    --status-cancelled-fg: 0 70% 32%;
+    --status-completed-fg: 215 25% 27%;
+    --status-no-show-fg: 262 60% 35%;
 
     /* Calendar specific */
     --calendar-unavailable: 220 14% 96%;
@@ -118,23 +125,23 @@
 
 @layer utilities {
   .status-confirmed {
-    @apply bg-[hsl(var(--status-confirmed-bg))] text-[hsl(var(--status-confirmed))] border-[hsl(var(--status-confirmed))];
+    @apply bg-[hsl(var(--status-confirmed-bg))] text-[hsl(var(--status-confirmed-fg))] border-[hsl(var(--status-confirmed))];
   }
   
   .status-pending {
-    @apply bg-[hsl(var(--status-pending-bg))] text-[hsl(var(--status-pending))] border-[hsl(var(--status-pending))];
+    @apply bg-[hsl(var(--status-pending-bg))] text-[hsl(var(--status-pending-fg))] border-[hsl(var(--status-pending))];
   }
   
   .status-cancelled {
-    @apply bg-[hsl(var(--status-cancelled-bg))] text-[hsl(var(--status-cancelled))] border-[hsl(var(--status-cancelled))];
+    @apply bg-[hsl(var(--status-cancelled-bg))] text-[hsl(var(--status-cancelled-fg))] border-[hsl(var(--status-cancelled))];
   }
   
   .status-completed {
-    @apply bg-[hsl(var(--status-completed-bg))] text-[hsl(var(--status-completed))] border-[hsl(var(--status-completed))];
+    @apply bg-[hsl(var(--status-completed-bg))] text-[hsl(var(--status-completed-fg))] border-[hsl(var(--status-completed))];
   }
   
   .status-no-show {
-    @apply bg-[hsl(var(--status-no-show-bg))] text-[hsl(var(--status-no-show))] border-[hsl(var(--status-no-show))];
+    @apply bg-[hsl(var(--status-no-show-bg))] text-[hsl(var(--status-no-show-fg))] border-[hsl(var(--status-no-show))];
   }
 
   .calendar-slot {
@@ -143,6 +150,18 @@
 
   .calendar-slot-unavailable {
     @apply bg-[hsl(var(--calendar-unavailable))] cursor-not-allowed;
+    /* Stripes, so "unavailable" isn't signalled by a faint tint alone.
+       The 12px tile divides the 24px slot height, so rows join without seams. */
+    background-image: linear-gradient(
+      135deg,
+      hsl(var(--border)) 25%,
+      transparent 25%,
+      transparent 50%,
+      hsl(var(--border)) 50%,
+      hsl(var(--border)) 75%,
+      transparent 75%
+    );
+    background-size: 12px 12px;
   }
 
   .scrollbar-thin {

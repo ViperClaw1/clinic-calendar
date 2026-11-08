@@ -4,28 +4,29 @@ import { useAppointmentStore } from '@/store/appointmentStore';
 import { physicians, locations } from '@/data/mockData';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { getAppointmentColor, STATUS_META } from '@/utils/calendarUtils';
+import { AppointmentStatus } from '@/types';
 import { cn } from '@/lib/utils';
 
+const STATUSES = Object.keys(STATUS_META) as AppointmentStatus[];
+
 const CalendarFilters: React.FC = () => {
-  const { 
-    selectedPhysicianId, 
+  const {
+    selectedPhysicianId,
     selectedLocationId,
     setSelectedPhysicianId,
-    setSelectedLocationId 
+    setSelectedLocationId
   } = useAppointmentStore();
 
-  const selectedPhysician = physicians.find((p) => p.id === selectedPhysicianId);
-
   return (
-    <div className="flex items-center gap-4 pb-4">
-      {/* Physician filter */}
+    <div className="flex flex-wrap items-center gap-x-4 gap-y-3 pb-4">
       <div className="flex items-center gap-2">
-        <Users className="h-4 w-4 text-muted-foreground" />
+        <Users className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
         <Select
           value={selectedPhysicianId || 'all'}
           onValueChange={(value) => setSelectedPhysicianId(value === 'all' ? null : value)}
         >
-          <SelectTrigger className="w-[200px]">
+          <SelectTrigger className="h-9 w-[200px]" aria-label="Filter by physician">
             <SelectValue placeholder="All Physicians" />
           </SelectTrigger>
           <SelectContent>
@@ -33,8 +34,8 @@ const CalendarFilters: React.FC = () => {
             {physicians.map((physician) => (
               <SelectItem key={physician.id} value={physician.id}>
                 <div className="flex items-center gap-2">
-                  <Avatar className="h-6 w-6">
-                    <AvatarFallback className="text-[10px] bg-primary/10 text-primary">
+                  <Avatar className="h-5 w-5">
+                    <AvatarFallback className="bg-primary/10 text-[10px] text-primary">
                       {physician.name.split(' ').map((n) => n[0]).join('')}
                     </AvatarFallback>
                   </Avatar>
@@ -46,14 +47,13 @@ const CalendarFilters: React.FC = () => {
         </Select>
       </div>
 
-      {/* Location filter */}
       <div className="flex items-center gap-2">
-        <MapPin className="h-4 w-4 text-muted-foreground" />
+        <MapPin className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
         <Select
           value={selectedLocationId || 'all'}
           onValueChange={(value) => setSelectedLocationId(value === 'all' ? null : value)}
         >
-          <SelectTrigger className="w-[200px]">
+          <SelectTrigger className="h-9 w-[200px]" aria-label="Filter by location">
             <SelectValue placeholder="All Locations" />
           </SelectTrigger>
           <SelectContent>
@@ -67,36 +67,25 @@ const CalendarFilters: React.FC = () => {
         </Select>
       </div>
 
-      {/* Selected physician availability indicator */}
-      {selectedPhysician && (
-        <div className="flex items-center gap-2 ml-auto">
-          <div className="flex items-center gap-1.5 text-xs">
-            <div className="w-3 h-3 rounded bg-calendar-unavailable border border-border" />
-            <span className="text-muted-foreground">Unavailable</span>
-          </div>
-          <div className="flex items-center gap-1.5 text-xs">
-            <div className="w-3 h-3 rounded bg-card border border-border" />
-            <span className="text-muted-foreground">Available</span>
-          </div>
-        </div>
-      )}
-
-      {/* Status legend */}
-      <div className="flex items-center gap-3 ml-4 border-l border-border pl-4">
-        <span className="text-xs text-muted-foreground">Status:</span>
-        <div className="flex items-center gap-1.5 text-xs">
-          <div className="w-3 h-3 rounded bg-status-confirmed-bg border-l-2 border-status-confirmed" />
-          <span className="text-muted-foreground">Confirmed</span>
-        </div>
-        <div className="flex items-center gap-1.5 text-xs">
-          <div className="w-3 h-3 rounded bg-status-pending-bg border-l-2 border-status-pending" />
-          <span className="text-muted-foreground">Pending</span>
-        </div>
-        <div className="flex items-center gap-1.5 text-xs">
-          <div className="w-3 h-3 rounded bg-status-cancelled-bg border-l-2 border-status-cancelled" />
-          <span className="text-muted-foreground">Cancelled</span>
-        </div>
-      </div>
+      <ul aria-label="Legend" className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground xl:ml-auto">
+        {STATUSES.map((status) => {
+          const { label, icon: Icon } = STATUS_META[status];
+          return (
+            <li key={status} className="flex items-center gap-1.5">
+              <span className={cn('flex h-4 w-4 items-center justify-center rounded-sm', getAppointmentColor(status))}>
+                <Icon className="h-3 w-3" aria-hidden="true" />
+              </span>
+              {label}
+            </li>
+          );
+        })}
+        {selectedPhysicianId && (
+          <li className="flex items-center gap-1.5">
+            <span className="calendar-slot-unavailable h-4 w-4 rounded-sm border border-border" />
+            Unavailable
+          </li>
+        )}
+      </ul>
     </div>
   );
 };

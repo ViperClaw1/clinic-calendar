@@ -6,13 +6,13 @@ import TimeColumn from './TimeColumn';
 import DayColumn from './DayColumn';
 
 const WeekView: React.FC = () => {
-  const { selectedDate, appointments, selectedPhysicianId } = useAppointmentStore();
+  const { selectedDate, appointments, selectedPhysicianId, selectedLocationId } = useAppointmentStore();
   const weekStart = startOfWeek(selectedDate, { weekStartsOn: 0 });
   
   const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
 
   return (
-    <div className="h-full bg-card rounded-xl border border-border overflow-auto shadow-sm scrollbar-thin">
+    <div data-calendar-scroll className="h-full bg-card rounded-lg border border-border overflow-auto scrollbar-thin">
       <div className="flex min-w-fit">
         <TimeColumn />
         <div className="flex flex-1">
@@ -20,7 +20,7 @@ const WeekView: React.FC = () => {
             <DayColumn
               key={day.toISOString()}
               date={day}
-              appointments={getAppointmentsForDate(appointments, day, selectedPhysicianId)}
+              appointments={getAppointmentsForDate(appointments, day, selectedPhysicianId, selectedLocationId)}
             />
           ))}
         </div>

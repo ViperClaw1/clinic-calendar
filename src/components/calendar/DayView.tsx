@@ -5,11 +5,11 @@ import TimeColumn from './TimeColumn';
 import DayColumn from './DayColumn';
 
 const DayView: React.FC = () => {
-  const { selectedDate, appointments, selectedPhysicianId } = useAppointmentStore();
-  const dayAppointments = getAppointmentsForDate(appointments, selectedDate, selectedPhysicianId);
+  const { selectedDate, appointments, selectedPhysicianId, selectedLocationId } = useAppointmentStore();
+  const dayAppointments = getAppointmentsForDate(appointments, selectedDate, selectedPhysicianId, selectedLocationId);
 
   return (
-    <div className="h-full bg-card rounded-xl border border-border overflow-auto shadow-sm scrollbar-thin">
+    <div data-calendar-scroll className="h-full bg-card rounded-lg border border-border overflow-auto scrollbar-thin">
       <div className="flex min-w-fit">
         <TimeColumn />
         <div className="flex flex-1">

@@ -1,5 +1,17 @@
-import { Physician, Appointment, AppointmentDuration } from '@/types';
+import { Physician, Appointment, AppointmentDuration, AppointmentStatus } from '@/types';
 import { format, addMinutes, parse, isWithinInterval, startOfWeek, endOfWeek, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay } from 'date-fns';
+import { Ban, CheckCheck, CheckCircle2, Clock, UserX, type LucideIcon } from 'lucide-react';
+
+// Height of a 15-minute slot in px. Must match the h-6 class on slot rows.
+export const SLOT_HEIGHT = 24;
+
+export const STATUS_META: Record<AppointmentStatus, { label: string; icon: LucideIcon }> = {
+  confirmed: { label: 'Confirmed', icon: CheckCircle2 },
+  pending: { label: 'Pending', icon: Clock },
+  cancelled: { label: 'Cancelled', icon: Ban },
+  completed: { label: 'Completed', icon: CheckCheck },
+  'no-show': { label: 'No-show', icon: UserX },
+};
 
 export const formatTime = (time: string): string => {
   const [hours, minutes] = time.split(':').map(Number);
@@ -114,14 +126,50 @@ export const getMonthDays = (date: Date): Date[] => {
 export const getAppointmentsForDate = (
   appointments: Appointment[],
   date: Date,
-  physicianId?: string | null
+  physicianId?: string | null,
+  locationId?: string | null
 ): Appointment[] => {
   const dateString = format(date, 'yyyy-MM-dd');
   return appointments.filter((apt) => {
     if (apt.date !== dateString) return false;
     if (physicianId && apt.physicianId !== physicianId) return false;
+    if (locationId && apt.locationId !== locationId) return false;
     return true;
   });
+};
+
+export interface PositionedAppointment {
+  appointment: Appointment;
+  lane: number;
+  laneCount: number;
+}
+
+// Places concurrent appointments side by side: each run of overlapping
+// appointments shares one lane count, and each appointment takes the first free lane.
+export const layoutAppointments = (appointments: Appointment[]): PositionedAppointment[] => {
+  const sorted = [...appointments].sort((a, b) => timeToMinutes(a.startTime) - timeToMinutes(b.startTime));
+  const result: PositionedAppointment[] = [];
+  let cluster: PositionedAppointment[] = [];
+  let laneEnds: number[] = [];
+
+  const closeCluster = () => {
+    cluster.forEach((item) => { item.laneCount = laneEnds.length; });
+    result.push(...cluster);
+    cluster = [];
+    laneEnds = [];
+  };
+
+  for (const appointment of sorted) {
+    const start = timeToMinutes(appointment.startTime);
+    if (laneEnds.length && start >= Math.max(...laneEnds)) closeCluster();
+
+    const free = laneEnds.findIndex((end) => end <= start);
+    const lane = free === -1 ? laneEnds.length : free;
+    laneEnds[lane] = start + appointment.duration;
+    cluster.push({ appointment, lane, laneCount: 1 });
+  }
+  closeCluster();
+  return result;
 };
 
 export const getAppointmentColor = (status: string): string => {
@@ -142,12 +190,11 @@ export const getAppointmentColor = (status: string): string => {
 };
 
 export const getSlotHeight = (duration: AppointmentDuration): number => {
-  // Each 15-minute slot is 48px (3rem)
-  return (duration / 15) * 48;
+  return (duration / 15) * SLOT_HEIGHT;
 };
 
 export const getSlotTop = (startTime: string, startHour: number = 8): number => {
   const startMinutes = timeToMinutes(startTime);
   const offsetMinutes = startMinutes - (startHour * 60);
-  return (offsetMinutes / 15) * 48;
+  return (offsetMinutes / 15) * SLOT_HEIGHT;
 };

@@ -17,36 +17,39 @@ const navItems = [
 
 const SidebarNav: React.FC<SidebarNavProps> = ({ activeItem = 'calendar', onItemClick }) => {
   return (
-    <aside className="w-64 bg-card border-r border-border flex flex-col h-screen sticky top-0">
+    <aside className="sticky top-0 flex h-screen w-16 flex-shrink-0 flex-col border-r border-border bg-card lg:w-64">
       {/* Logo */}
-      <div className="p-6 border-b border-border">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
-            <CalendarDays className="w-5 h-5 text-primary-foreground" />
+      <div className="border-b border-border p-3 lg:p-6">
+        <div className="flex items-center justify-center gap-3 lg:justify-start">
+          <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-primary">
+            <CalendarDays className="h-5 w-5 text-primary-foreground" aria-hidden="true" />
           </div>
-          <div>
-            <h1 className="font-bold text-lg text-foreground">Prompt</h1>
+          <div className="sr-only lg:not-sr-only">
+            <h1 className="text-lg font-bold text-foreground">Prompt</h1>
             <p className="text-xs text-muted-foreground">Scheduling</p>
           </div>
         </div>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 p-4">
+      <nav aria-label="Main" className="flex-1 p-2 lg:p-4">
         <ul className="space-y-1">
           {navItems.map((item) => (
             <li key={item.id}>
               <button
+                type="button"
+                title={item.label}
+                aria-current={activeItem === item.id ? 'page' : undefined}
                 onClick={() => onItemClick?.(item.id)}
                 className={cn(
-                  "w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors",
+                  "flex w-full items-center justify-center gap-3 rounded-lg py-2.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 lg:justify-start lg:px-4",
                   activeItem === item.id
                     ? "bg-primary text-primary-foreground"
                     : "text-muted-foreground hover:bg-muted hover:text-foreground"
                 )}
               >
-                <item.icon className="w-5 h-5" />
-                {item.label}
+                <item.icon className="h-5 w-5" aria-hidden="true" />
+                <span className="sr-only lg:not-sr-only">{item.label}</span>
               </button>
             </li>
           ))}
@@ -54,17 +57,21 @@ const SidebarNav: React.FC<SidebarNavProps> = ({ activeItem = 'calendar', onItem
       </nav>
 
       {/* User section */}
-      <div className="p-4 border-t border-border">
-        <div className="flex items-center gap-3 px-2">
-          <div className="w-9 h-9 rounded-full bg-muted flex items-center justify-center">
+      <div className="border-t border-border p-2 lg:p-4">
+        <div className="flex items-center justify-center gap-3 lg:px-2">
+          <div className="hidden h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-muted lg:flex">
             <span className="text-sm font-medium text-muted-foreground">AC</span>
           </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-foreground truncate">Admin Clinic</p>
-            <p className="text-xs text-muted-foreground truncate">admin@clinic.com</p>
+          <div className="hidden min-w-0 flex-1 lg:block">
+            <p className="truncate text-sm font-medium text-foreground">Admin Clinic</p>
+            <p className="truncate text-xs text-muted-foreground">admin@clinic.com</p>
           </div>
-          <button className="p-2 text-muted-foreground hover:text-foreground transition-colors">
-            <LogOut className="w-4 h-4" />
+          <button
+            type="button"
+            aria-label="Log out"
+            className="rounded-md p-2 text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            <LogOut className="h-4 w-4" aria-hidden="true" />
           </button>
         </div>
       </div>
