@@ -101,4 +101,5 @@ from auth.users where email like '%@clinic.test';
 insert into public.clinic_members (user_id, role, physician_id) values
   ('00000000-0000-0000-0000-00000000d001', 'admin', null),
   ('00000000-0000-0000-0000-00000000d002', 'receptionist', null),
-  ('00000000-0000-0000-0000-00000000d003', 'physician', '00000000-0000-0000-0000-00000000b001');
+  ('00000000-0000-0000-0000-00000000d003', 'physician', '00000000-0000-0000-0000-00000000b001')
+  on conflict (user_id) do update set role = excluded.role, physician_id = excluded.physician_id;

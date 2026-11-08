@@ -4,6 +4,7 @@ import { useAppointmentStore } from '@/store/appointmentStore';
 import { useAppointments, useAppointmentTypes, useCreateAppointment, useLocations, usePatients, usePhysicians, useUpdateAppointment } from '@/api/hooks';
 import { isSlotAvailable, formatTime, generateTimeSlots } from '@/utils/calendarUtils';
 import { Appointment, AppointmentDuration, AppointmentStatus } from '@/types';
+import NewPatientDialog from '@/components/NewPatientDialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -27,6 +28,7 @@ const AppointmentSidebar: React.FC = () => {
   const updateAppointment = useUpdateAppointment();
   const saving = createAppointment.isPending || updateAppointment.isPending;
 
+  const [newPatientOpen, setNewPatientOpen] = useState(false);
   const isEditing = !!editingAppointmentId;
 
   const [formData, setFormData] = useState({
@@ -158,6 +160,9 @@ const AppointmentSidebar: React.FC = () => {
                 ))}
               </SelectContent>
             </Select>
+            <Button type="button" variant="link" size="sm" className="h-auto p-0" onClick={() => setNewPatientOpen(true)}>
+              + New patient
+            </Button>
           </div>
 
           {/* Physician Selection */}
@@ -363,6 +368,13 @@ const AppointmentSidebar: React.FC = () => {
           </div>
         </form>
       </div>
+
+      {/* Outside the form above: React events bubble through portals, so a nested submit would also book. */}
+      <NewPatientDialog
+        open={newPatientOpen}
+        onOpenChange={setNewPatientOpen}
+        onCreated={(patientId) => setFormData((current) => ({ ...current, patientId }))}
+      />
     </>
   );
 };

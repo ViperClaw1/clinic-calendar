@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { PasswordInput } from '@/components/ui/password-input';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 
 type Mode = 'signin' | 'signup' | 'forgot';
 
@@ -15,6 +16,9 @@ const Login: React.FC = () => {
   const [mode, setMode] = useState<Mode>('signin');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [role, setRole] = useState<'receptionist' | 'physician'>('receptionist');
+  const [name, setName] = useState('');
+  const [specialty, setSpecialty] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
@@ -35,7 +39,7 @@ const Login: React.FC = () => {
       const { error: authError } = await signIn(email, password);
       if (authError) setError(authErrorMessage(authError, 'Could not sign in. Please try again.'));
     } else if (mode === 'signup') {
-      const { data, error: authError } = await signUp(email, password);
+      const { data, error: authError } = await signUp(email, password, role === 'physician' ? { role, name, specialty } : { role });
       if (authError) setError(authErrorMessage(authError, 'Could not sign up. Please try again.'));
       // With email confirmation on there is no session yet; without it AuthGate takes over.
       else if (!data.session) setNotice('Check your email to confirm your account.');
@@ -57,6 +61,35 @@ const Login: React.FC = () => {
           </div>
           <h1 className="text-lg font-bold text-foreground">{TITLES[mode]}</h1>
         </div>
+        {mode === 'signup' && (
+          <div className="space-y-2">
+            <Label id="role-label">I am a</Label>
+            <ToggleGroup
+              type="single"
+              variant="outline"
+              aria-labelledby="role-label"
+              className="grid grid-cols-2"
+              value={role}
+              // Radix sends '' when the active item is pressed again; a role stays selected.
+              onValueChange={(value) => value && setRole(value as typeof role)}
+            >
+              <ToggleGroupItem value="receptionist">Receptionist</ToggleGroupItem>
+              <ToggleGroupItem value="physician">Physician</ToggleGroupItem>
+            </ToggleGroup>
+          </div>
+        )}
+        {mode === 'signup' && role === 'physician' && (
+          <>
+            <div className="space-y-2">
+              <Label htmlFor="name">Full name</Label>
+              <Input id="name" autoComplete="name" required value={name} onChange={(e) => setName(e.target.value)} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="specialty">Specialty</Label>
+              <Input id="specialty" required value={specialty} onChange={(e) => setSpecialty(e.target.value)} />
+            </div>
+          </>
+        )}
         <div className="space-y-2">
           <Label htmlFor="email">Email</Label>
           <Input id="email" type="email" autoComplete="username" placeholder="name@example.com" required value={email} onChange={(e) => setEmail(e.target.value)} />

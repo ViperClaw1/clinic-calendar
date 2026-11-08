@@ -50,8 +50,12 @@ export const useMembership = (userId: string | undefined) =>
 
 export const signIn = (email: string, password: string) => supabase.auth.signInWithPassword({ email, password });
 export const signOut = () => supabase.auth.signOut();
-export const signUp = (email: string, password: string) =>
-  supabase.auth.signUp({ email, password, options: { emailRedirectTo: window.location.origin } });
+export type SignUpProfile =
+  | { role: 'receptionist' }
+  | { role: 'physician'; name: string; specialty: string };
+
+export const signUp = (email: string, password: string, profile: SignUpProfile) =>
+  supabase.auth.signUp({ email, password, options: { emailRedirectTo: window.location.origin, data: profile } });
 export const requestPasswordReset = (email: string) =>
   supabase.auth.resetPasswordForEmail(email, { redirectTo: `${window.location.origin}/reset-password` });
 export const updatePassword = (password: string) => supabase.auth.updateUser({ password });
@@ -110,6 +114,29 @@ export const useAppointmentTypes = () =>
     queryKey: ['appointment-types'],
     queryFn: async () => must(await supabase.from('appointment_types').select('name').order('name')).map((t) => t.name),
   });
+
+export const useCreatePatient = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (patient: Omit<Patient, 'id'>) => {
+      const row = must(
+        await supabase
+          .from('patients')
+          .insert({
+            name: patient.name,
+            email: patient.email,
+            phone: patient.phone,
+            date_of_birth: patient.dateOfBirth ?? null,
+          })
+          .select('id')
+          .single(),
+      );
+      return row.id;
+    },
+    onError: toastSaveError,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['patients'] }),
+  });
+};
 
 export const useSaveSchedule = () => {
   const queryClient = useQueryClient();

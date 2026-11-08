@@ -1,7 +1,7 @@
 -- Invariants and RLS from ADR-0001. Run: supabase test db
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(39);
+select plan(49);
 
 -- Fixtures: America/New_York; 2030-03-10 is the DST start. Dates avoid clashing with seed.sql.
 insert into auth.users (id, email) values
@@ -25,7 +25,8 @@ insert into public.clinic_members (user_id, role, physician_id) values
   ('11111111-0000-0000-0000-000000000001', 'admin', null),
   ('11111111-0000-0000-0000-000000000002', 'receptionist', null),
   ('11111111-0000-0000-0000-000000000003', 'physician', '33333333-0000-0000-0000-00000000000a'),
-  ('11111111-0000-0000-0000-000000000004', 'physician', '33333333-0000-0000-0000-00000000000b');
+  ('11111111-0000-0000-0000-000000000004', 'physician', '33333333-0000-0000-0000-00000000000b')
+  on conflict (user_id) do update set role = excluded.role, physician_id = excluded.physician_id;
 insert into public.patients (id, name, email, phone) values
   ('44444444-0000-0000-0000-00000000000a', 'Patient A', 'a@x', '1'),
   ('44444444-0000-0000-0000-00000000000b', 'Patient B', 'b@x', '2');
@@ -89,6 +90,20 @@ select throws_ok($$ update public.appointments set starts_at = starts_at + inter
     where id = '55555555-0000-0000-0000-00000000000b' $$,
   'CA001', null, 'moving is checked against the current schedule');
 
+-- The role chosen at sign-up; metadata is client-controlled.
+insert into auth.users (id, email, raw_user_meta_data) values
+  ('11111111-0000-0000-0000-000000000006', 'new-recep@test.local', '{"role":"receptionist"}'),
+  ('11111111-0000-0000-0000-000000000007', 'new-doc@test.local', '{"role":"physician","name":"New Doc","specialty":"ENT"}'),
+  ('11111111-0000-0000-0000-000000000008', 'hacker@test.local', '{"role":"admin"}');
+select is((select role from public.clinic_members where user_id = '11111111-0000-0000-0000-000000000006'),
+  'receptionist'::public.member_role, 'sign-up can choose receptionist');
+select is((select p.name from public.clinic_members m join public.physicians p on p.id = m.physician_id
+    where m.user_id = '11111111-0000-0000-0000-000000000007'), 'New Doc', 'sign-up as physician creates their physician');
+select ok((select count(*) from public.physician_locations l join public.clinic_members m using (physician_id)
+    where m.user_id = '11111111-0000-0000-0000-000000000007') >= 2, 'a new physician is linked to the locations');
+select is((select role from public.clinic_members where user_id = '11111111-0000-0000-0000-000000000008'),
+  'viewer'::public.member_role, 'admin cannot be self-granted at sign-up');
+
 create function pg_temp.login(n int) returns void language sql as $$
   select set_config('request.jwt.claims',
     json_build_object('sub', '11111111-0000-0000-0000-00000000000' || n, 'role', 'authenticated')::text, true)
@@ -136,12 +151,19 @@ select throws_ok($$ insert into public.physician_availability (physician_id, loc
   '42501', null, 'physician cannot edit a foreign schedule');
 select lives_ok($$ select pg_temp.book(gen_random_uuid(), 'b', '2030-02-04 15:00Z', 30) $$,
   'physician can book for themselves');
+select lives_ok($$ insert into public.patients (name, email, phone) values ('New', 'n@x', '3') $$, 'physician can add a patient');
 update public.clinic_members set role = 'admin' where user_id = '11111111-0000-0000-0000-000000000004';
 select is(private.member_role(), 'physician'::public.member_role, 'physician cannot promote themselves');
 
--- A signed-in user who is not a member sees nothing.
+-- A self-registered user is a viewer: the app opens, patient data does not.
 select pg_temp.login(5);
-select is((select count(*) from public.patients), 0::bigint, 'non-member sees no patients');
+select is(private.member_role(), 'viewer'::public.member_role, 'sign-up grants the viewer role');
+select ok((select count(*) from public.physicians) > 0, 'viewer sees reference data');
+select is((select count(*) from public.patients), 0::bigint, 'viewer sees no patients');
+select is((select count(*) from public.appointments), 0::bigint, 'viewer sees no appointments');
+select throws_ok($$ select pg_temp.book(gen_random_uuid(), 'a', '2030-02-11 15:00Z', 30) $$,
+  '42501', null, 'viewer cannot create appointments');
+select throws_ok($$ insert into public.patients (name, email, phone) values ('New', 'n@x', '3') $$, '42501', null, 'viewer cannot add a patient');
 
 -- Admin sees the trail, with the actor recorded.
 select pg_temp.login(1);
