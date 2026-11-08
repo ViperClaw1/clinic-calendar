@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import type { Session } from '@supabase/supabase-js';
+import type { AuthError, Session } from '@supabase/supabase-js';
 import { addDays, endOfMonth, endOfWeek, format, startOfMonth, startOfWeek } from 'date-fns';
 import { toast } from 'sonner';
 import { useAppointmentStore } from '@/store/appointmentStore';
@@ -50,6 +50,23 @@ export const useMembership = (userId: string | undefined) =>
 
 export const signIn = (email: string, password: string) => supabase.auth.signInWithPassword({ email, password });
 export const signOut = () => supabase.auth.signOut();
+export const signUp = (email: string, password: string) =>
+  supabase.auth.signUp({ email, password, options: { emailRedirectTo: window.location.origin } });
+export const requestPasswordReset = (email: string) =>
+  supabase.auth.resetPasswordForEmail(email, { redirectTo: `${window.location.origin}/reset-password` });
+export const updatePassword = (password: string) => supabase.auth.updateUser({ password });
+
+export const authErrorMessage = (error: AuthError, fallback: string): string => {
+  if (error.status === 429) return 'Too many attempts. Please wait and try again.';
+  switch (error.code) {
+    case 'invalid_credentials': return 'Wrong email or password.';
+    case 'email_not_confirmed': return 'Please confirm your email first.';
+    case 'user_already_exists': return 'An account with this email already exists.';
+    case 'same_password': return 'The new password must differ from the old one.';
+    case 'weak_password': return error.message; // names the rule the server enforces
+    default: return fallback;
+  }
+};
 
 // Reference data --------------------------------------------------------------
 
