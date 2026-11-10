@@ -5,6 +5,7 @@ import CalendarFilters from '@/components/calendar/CalendarFilters';
 import CalendarGrid from '@/components/calendar/CalendarGrid';
 import AppointmentSidebar from '@/components/AppointmentSidebar';
 import PhysiciansSection from '@/components/physicians/PhysiciansSection';
+import LocationsSection from '@/features/locations/components/LocationsSection';
 import SettingsSection from '@/components/settings/SettingsSection';
 import { useAppointmentsRealtime } from '@/api/hooks';
 
@@ -33,6 +34,10 @@ const Dashboard: React.FC = () => {
 
       {activeNav === 'physicians' && (
         <PhysiciansSection />
+      )}
+
+      {activeNav === 'locations' && (
+        <LocationsSection />
       )}
 
       {activeNav === 'settings' && (

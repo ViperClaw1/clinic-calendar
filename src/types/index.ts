@@ -7,6 +7,7 @@ export interface Location {
   name: string;
   address: string;
   timezone: string; // IANA
+  createdBy: string | null;
 }
 
 export interface AvailabilityRange {

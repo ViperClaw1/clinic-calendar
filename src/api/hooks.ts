@@ -77,7 +77,16 @@ export const authErrorMessage = (error: AuthError, fallback: string): string => 
 export const useLocations = () =>
   useQuery({
     queryKey: ['locations'],
-    queryFn: async (): Promise<Location[]> => must(await supabase.from('locations').select('*').order('name')),
+    queryFn: async (): Promise<Location[]> => {
+      const rows = must(await supabase.from('locations').select('*').order('name'));
+      return rows.map((row) => ({
+        id: row.id,
+        name: row.name,
+        address: row.address,
+        timezone: row.timezone,
+        createdBy: row.created_by,
+      }));
+    },
   });
 
 export const usePhysicians = () =>

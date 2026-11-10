@@ -1,7 +1,7 @@
 -- Invariants and RLS from ADR-0001. Run: supabase test db
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(53);
+select plan(63);
 
 -- Fixtures: America/New_York; 2030-03-10 is the DST start. Dates avoid clashing with seed.sql.
 insert into auth.users (id, email) values
@@ -160,6 +160,34 @@ select throws_ok($$ insert into public.physician_locations values ('33333333-000
 delete from public.physician_locations where physician_id = '33333333-0000-0000-0000-00000000000a';
 select is((select count(*) from public.physician_locations where physician_id = '33333333-0000-0000-0000-00000000000a'), 2::bigint,
   'physician cannot remove a location of someone else');
+select lives_ok($$ insert into public.locations (name, address, timezone, created_by)
+  values ('Own', '1 Main', 'America/New_York', '11111111-0000-0000-0000-000000000004') $$,
+  'physician can create a location they own');
+select ok(exists (select 1 from public.physician_locations
+    where physician_id = '33333333-0000-0000-0000-00000000000b'
+      and location_id = (select id from public.locations where name = 'Own')),
+  'creating a location links it to the physician');
+select lives_ok($$ update public.locations set name = 'Own 2' where name = 'Own' $$,
+  'physician can rename their location');
+update public.locations set name = 'nope' where id = '22222222-0000-0000-0000-000000000001';
+select is((select name from public.locations where id = '22222222-0000-0000-0000-000000000001'), 'L1',
+  'physician cannot edit a location they do not own');
+select throws_ok($$ insert into public.locations (name, address, timezone, created_by)
+  values ('Stolen', 'x', 'UTC', '11111111-0000-0000-0000-000000000003') $$,
+  '42501', null, 'physician cannot create a location for someone else');
+select throws_ok($$ insert into public.locations (name, address, timezone, created_by)
+  values ('Anon', 'x', 'UTC', null) $$,
+  '42501', null, 'physician cannot create a location without owning it');
+select throws_ok($$ update public.locations set created_by = '11111111-0000-0000-0000-000000000003' where name = 'Own 2' $$,
+  '42501', null, 'physician cannot give their location away');
+select pg_temp.login(3);
+delete from public.locations where name = 'Own 2';
+select is((select count(*) from public.locations where name = 'Own 2'), 1::bigint,
+  'physician cannot delete a location of someone else');
+select pg_temp.login(4);
+delete from public.locations where name = 'Own 2';
+select is((select count(*) from public.locations where name = 'Own 2'), 0::bigint,
+  'physician can delete their location');
 select lives_ok($$ insert into public.patients (name, email, phone) values ('New', 'n@x', '3') $$, 'physician can add a patient');
 update public.clinic_members set role = 'admin' where user_id = '11111111-0000-0000-0000-000000000004';
 select is(private.member_role(), 'physician'::public.member_role, 'physician cannot promote themselves');
@@ -173,6 +201,9 @@ select is((select count(*) from public.appointments), 0::bigint, 'viewer sees no
 select throws_ok($$ select pg_temp.book(gen_random_uuid(), 'a', '2030-02-11 15:00Z', 30) $$,
   '42501', null, 'viewer cannot create appointments');
 select throws_ok($$ insert into public.patients (name, email, phone) values ('New', 'n@x', '3') $$, '42501', null, 'viewer cannot add a patient');
+select throws_ok($$ insert into public.locations (name, address, timezone, created_by)
+  values ('x', 'y', 'UTC', '11111111-0000-0000-0000-000000000005') $$,
+  '42501', null, 'viewer cannot add a location');
 
 -- Admin sees the trail, with the actor recorded.
 select pg_temp.login(1);

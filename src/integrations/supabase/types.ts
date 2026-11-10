@@ -173,18 +173,21 @@ export type Database = {
       locations: {
         Row: {
           address: string
+          created_by: string | null
           id: string
           name: string
           timezone: string
         }
         Insert: {
           address: string
+          created_by?: string | null
           id?: string
           name: string
           timezone: string
         }
         Update: {
           address?: string
+          created_by?: string | null
           id?: string
           name?: string
           timezone?: string
