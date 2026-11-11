@@ -52,7 +52,7 @@ const MonthView: React.FC = () => {
             <div
               key={day.toISOString()}
               className={cn(
-                'min-h-[104px] cursor-pointer border-b border-r border-border p-1 transition-colors hover:bg-muted/50',
+                'min-h-[72px] min-w-0 cursor-pointer border-b border-r border-border p-0.5 transition-colors sm:min-h-[104px] sm:p-1 hover:bg-muted/50',
                 !isCurrentMonth && 'bg-muted/30',
                 isSelected && 'bg-primary/5'
               )}
@@ -83,9 +83,10 @@ const MonthView: React.FC = () => {
                 {hiddenCount > 0 && (
                   <button
                     type="button"
+                    aria-label={`${hiddenCount} more appointments`}
                     className={cn('w-full rounded-sm text-center text-xs text-muted-foreground hover:text-foreground', focusClass)}
                   >
-                    +{hiddenCount} more
+                    +{hiddenCount}<span className="hidden sm:inline"> more</span>
                   </button>
                 )}
               </div>

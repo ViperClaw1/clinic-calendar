@@ -43,7 +43,7 @@ const LocationsSection: React.FC = () => {
   };
 
   return (
-    <div className="flex-1 overflow-auto p-6">
+    <div className="min-w-0 flex-1 overflow-auto p-3 md:p-6">
       <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
         <div>
           <div className="mb-1 flex items-center gap-3">

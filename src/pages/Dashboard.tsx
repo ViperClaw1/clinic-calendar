@@ -6,6 +6,7 @@ import CalendarGrid from '@/components/calendar/CalendarGrid';
 import AppointmentSidebar from '@/components/AppointmentSidebar';
 import PhysiciansSection from '@/components/physicians/PhysiciansSection';
 import LocationsSection from '@/features/locations/components/LocationsSection';
+import ReportsSection from '@/components/reports/ReportsSection';
 import SettingsSection from '@/components/settings/SettingsSection';
 import { useAppointmentsRealtime } from '@/api/hooks';
 
@@ -14,7 +15,7 @@ const Dashboard: React.FC = () => {
   useAppointmentsRealtime();
 
   return (
-    <div className="flex h-screen w-full bg-background overflow-hidden">
+    <div className="flex h-dvh w-full flex-col overflow-hidden bg-background md:flex-row">
       <SidebarNav activeItem={activeNav} onItemClick={setActiveNav} />
 
       {activeNav === 'calendar' && (
@@ -38,6 +39,10 @@ const Dashboard: React.FC = () => {
 
       {activeNav === 'locations' && (
         <LocationsSection />
+      )}
+
+      {activeNav === 'reports' && (
+        <ReportsSection />
       )}
 
       {activeNav === 'settings' && (

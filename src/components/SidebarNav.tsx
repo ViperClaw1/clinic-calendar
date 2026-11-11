@@ -22,25 +22,26 @@ const SidebarNav: React.FC<SidebarNavProps> = ({ activeItem = 'calendar', onItem
   const email = session?.user.email ?? '';
 
   return (
-    <aside className="sticky top-0 flex h-screen w-16 flex-shrink-0 flex-col border-r border-border bg-card lg:w-64">
+    // Below md: bottom tab bar. md+: left rail, expanded at lg.
+    <aside className="order-last flex w-full flex-shrink-0 border-t border-border bg-card pb-[env(safe-area-inset-bottom)] md:order-none md:sticky md:top-0 md:h-screen md:w-16 md:flex-col md:border-r md:border-t-0 md:pb-0 lg:w-64">
       {/* Logo */}
-      <div className="border-b border-border p-3 lg:p-6">
+      <div className="hidden border-b border-border p-3 md:block lg:p-6">
         <div className="flex items-center justify-center gap-3 lg:justify-start">
           <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-primary">
             <CalendarDays className="h-5 w-5 text-primary-foreground" aria-hidden="true" />
           </div>
           <div className="sr-only lg:not-sr-only">
-            <h1 className="text-lg font-bold text-foreground">Prompt</h1>
+            <h1 className="text-lg font-bold text-foreground">CarePoint</h1>
             <p className="text-xs text-muted-foreground">Scheduling</p>
           </div>
         </div>
       </div>
 
       {/* Navigation */}
-      <nav aria-label="Main" className="flex-1 p-2 lg:p-4">
-        <ul className="space-y-1">
+      <nav aria-label="Main" className="flex-1 p-1 md:p-2 lg:p-4">
+        <ul className="flex gap-1 md:block md:space-y-1">
           {navItems.map((item) => (
-            <li key={item.id}>
+            <li key={item.id} className="flex-1">
               <button
                 type="button"
                 title={item.label}
@@ -62,7 +63,7 @@ const SidebarNav: React.FC<SidebarNavProps> = ({ activeItem = 'calendar', onItem
       </nav>
 
       {/* User section */}
-      <div className="border-t border-border p-2 lg:p-4">
+      <div className="flex items-center border-l border-border p-1 md:block md:border-l-0 md:border-t md:p-2 lg:p-4">
         <div className="flex items-center justify-center gap-3 lg:px-2">
           <div className="hidden h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-muted lg:flex">
             <span className="text-sm font-medium text-muted-foreground">{email.slice(0, 2).toUpperCase()}</span>
@@ -75,7 +76,7 @@ const SidebarNav: React.FC<SidebarNavProps> = ({ activeItem = 'calendar', onItem
             type="button"
             aria-label="Log out"
             onClick={() => signOut()}
-            className="rounded-md p-2 text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="rounded-md p-3 text-muted-foreground md:p-2 transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             <LogOut className="h-4 w-4" aria-hidden="true" />
           </button>

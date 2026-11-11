@@ -21,7 +21,12 @@ const CalendarHeader: React.FC = () => {
   const getDateRangeLabel = () => {
     switch (calendarView) {
       case 'day':
-        return format(selectedDate, 'EEEE, MMMM d, yyyy');
+        return (
+          <>
+            <span className="sm:hidden">{format(selectedDate, 'EEE, MMM d, yyyy')}</span>
+            <span className="hidden sm:inline">{format(selectedDate, 'EEEE, MMMM d, yyyy')}</span>
+          </>
+        );
       case 'week': {
         const weekStart = startOfWeek(selectedDate, { weekStartsOn: 0 });
         return `${format(weekStart, 'MMM d')} – ${format(addDays(weekStart, 6), 'MMM d, yyyy')}`;
@@ -32,8 +37,8 @@ const CalendarHeader: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3 pb-4">
-      <div className="flex flex-wrap items-center gap-3">
+    <div className="flex flex-wrap items-center justify-between gap-2 pb-3 sm:gap-3 sm:pb-4">
+      <div className="flex flex-wrap items-center gap-2 sm:gap-3">
         <Button variant="outline" onClick={() => setSelectedDate(new Date())} className="h-9">
           Today
         </Button>
@@ -59,12 +64,12 @@ const CalendarHeader: React.FC = () => {
           </Button>
         </div>
 
-        <h2 className="text-lg font-semibold text-foreground sm:text-xl" aria-live="polite">
+        <h2 className="text-base font-semibold text-foreground sm:text-xl" aria-live="polite">
           {getDateRangeLabel()}
         </h2>
       </div>
 
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2 sm:gap-3">
         <div role="group" aria-label="Calendar view" className="flex items-center rounded-lg bg-muted p-1">
           {(['day', 'week', 'month'] as const).map((view) => (
             <button

@@ -18,7 +18,7 @@ const SettingsSection: React.FC = () => {
   const physician = physicians.find((p) => p.id === membership?.physician_id);
 
   return (
-    <div className="flex-1 overflow-auto p-6">
+    <div className="min-w-0 flex-1 overflow-auto p-3 md:p-6">
       <div className="mb-6">
         <div className="mb-1 flex items-center gap-3">
           <Settings className="h-6 w-6 text-primary" aria-hidden="true" />

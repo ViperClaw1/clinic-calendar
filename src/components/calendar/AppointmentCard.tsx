@@ -52,13 +52,14 @@ const AppointmentCard: React.FC<AppointmentCardProps> = ({ appointment, compact 
       <div
         {...interactionProps}
         className={cn(
-          'flex items-center gap-1 rounded border-l-2 px-1.5 py-0.5 text-xs cursor-pointer transition-[filter] hover:brightness-95',
+          'flex items-center justify-center gap-1 rounded border-l-2 px-1 py-0.5 text-xs cursor-pointer sm:justify-start sm:px-1.5 transition-[filter] hover:brightness-95',
           focusClass,
           getAppointmentColor(appointment.status)
         )}
       >
         <StatusIcon className="h-3 w-3 shrink-0" aria-hidden="true" />
-        <span className={nameClass}>{patientName}</span>
+        {/* Phones show the status icon only; the full description is in aria-label */}
+        <span className={cn(nameClass, 'hidden sm:inline')}>{patientName}</span>
         <span className="ml-auto hidden shrink-0 opacity-80 xl:inline">{start}</span>
       </div>
     );
@@ -75,7 +76,7 @@ const AppointmentCard: React.FC<AppointmentCardProps> = ({ appointment, compact 
       }}
       onDragEnd={() => setIsDragging(false)}
       className={cn(
-        'h-full overflow-hidden rounded border-l-4 px-1.5 text-xs cursor-pointer transition-[filter,opacity] hover:brightness-95',
+        'h-full overflow-hidden rounded border-l-4 px-1 text-xs sm:px-1.5 cursor-pointer transition-[filter,opacity] hover:brightness-95',
         appointment.duration === 15 ? 'flex items-center' : 'py-1',
         focusClass,
         isDragging && 'opacity-50',

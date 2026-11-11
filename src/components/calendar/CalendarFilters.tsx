@@ -21,14 +21,14 @@ const CalendarFilters: React.FC = () => {
   const { data: locations = [] } = useLocations();
 
   return (
-    <div className="flex flex-wrap items-center gap-x-4 gap-y-3 pb-4">
-      <div className="flex items-center gap-2">
-        <Users className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
+    <div className="flex flex-wrap items-center gap-x-3 gap-y-3 pb-3 sm:gap-x-4 sm:pb-4">
+      <div className="flex min-w-0 flex-1 items-center gap-2 sm:flex-none">
+        <Users className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
         <Select
           value={selectedPhysicianId || 'all'}
           onValueChange={(value) => setSelectedPhysicianId(value === 'all' ? null : value)}
         >
-          <SelectTrigger className="h-9 w-[200px]" aria-label="Filter by physician">
+          <SelectTrigger className="h-9 w-full min-w-0 sm:w-[200px]" aria-label="Filter by physician">
             <SelectValue placeholder="All Physicians" />
           </SelectTrigger>
           <SelectContent>
@@ -49,13 +49,13 @@ const CalendarFilters: React.FC = () => {
         </Select>
       </div>
 
-      <div className="flex items-center gap-2">
-        <MapPin className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
+      <div className="flex min-w-0 flex-1 items-center gap-2 sm:flex-none">
+        <MapPin className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
         <Select
           value={selectedLocationId || 'all'}
           onValueChange={(value) => setSelectedLocationId(value === 'all' ? null : value)}
         >
-          <SelectTrigger className="h-9 w-[200px]" aria-label="Filter by location">
+          <SelectTrigger className="h-9 w-full min-w-0 sm:w-[200px]" aria-label="Filter by location">
             <SelectValue placeholder="All Locations" />
           </SelectTrigger>
           <SelectContent>
@@ -69,7 +69,7 @@ const CalendarFilters: React.FC = () => {
         </Select>
       </div>
 
-      <ul aria-label="Legend" className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground xl:ml-auto">
+      <ul aria-label="Legend" className="flex w-full flex-wrap items-center gap-x-3 gap-y-1 text-xs sm:w-auto text-muted-foreground xl:ml-auto">
         {STATUSES.map((status) => {
           const { label, icon: Icon } = STATUS_META[status];
           return (

@@ -104,7 +104,8 @@ const DayColumn: React.FC<DayColumnProps> = ({ date, appointments, showHeader = 
   );
 
   return (
-    <div className="flex min-w-[120px] flex-1 flex-col border-l border-border">
+    // No min width on phones so all 7 week columns fit down to 320px.
+    <div className="flex min-w-0 flex-1 flex-col border-l border-border sm:min-w-[80px] xl:min-w-[120px]">
       {showHeader && (
         <div
           className="sticky top-0 z-10 h-16 border-b border-border bg-card text-center"

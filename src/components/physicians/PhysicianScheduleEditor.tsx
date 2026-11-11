@@ -264,7 +264,7 @@ const PhysicianScheduleEditor: React.FC<PhysicianScheduleEditorProps> = ({
                 currentDayIntervals.map((interval, index) => (
                   <div
                     key={interval.id}
-                    className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg"
+                    className="flex flex-wrap items-center gap-2 rounded-lg bg-muted/50 p-2 sm:gap-3 sm:p-3"
                   >
                     <span className="text-sm text-muted-foreground font-medium w-6">
                       {index + 1}.

@@ -137,8 +137,8 @@ const AppointmentSidebar: React.FC = () => {
           <h2 className="text-lg font-semibold">
             {isEditing ? 'Edit Appointment' : 'New Appointment'}
           </h2>
-          <Button variant="ghost" size="icon" onClick={closeSidebar}>
-            <X className="h-5 w-5" />
+          <Button variant="ghost" size="icon" onClick={closeSidebar} aria-label="Close">
+            <X className="h-5 w-5" aria-hidden="true" />
           </Button>
         </div>
 
@@ -241,7 +241,7 @@ const AppointmentSidebar: React.FC = () => {
           </div>
 
           {/* Time and Duration */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-3 sm:gap-4">
             <div className="space-y-2">
               <Label className="flex items-center gap-2">
                 <Clock className="h-4 w-4 text-muted-foreground" />
@@ -353,14 +353,14 @@ const AppointmentSidebar: React.FC = () => {
           </div>
 
           {/* Actions */}
-          <div className="flex gap-3 pt-4">
+          <div className="flex flex-wrap gap-3 pt-4">
             {isEditing && formData.status !== 'cancelled' && (
               <Button
                 type="button"
                 variant="destructive"
                 onClick={handleCancelAppointment}
                 disabled={saving}
-                className="gap-2"
+                className="w-full gap-2 sm:w-auto"
               >
                 <Ban className="h-4 w-4" />
                 Cancel appointment

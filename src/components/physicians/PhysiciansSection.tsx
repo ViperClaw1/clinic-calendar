@@ -31,7 +31,7 @@ const PhysiciansSection: React.FC = () => {
   );
 
   return (
-    <div className="flex-1 p-6 overflow-auto">
+    <div className="min-w-0 flex-1 overflow-auto p-3 md:p-6">
       {/* Header */}
       <div className="mb-6">
         <div className="flex items-center gap-3 mb-1">
